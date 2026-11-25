@@ -1,0 +1,104 @@
+Fortivex AI — Company Knowledge Base
+=====================================
+
+ABOUT FORTIVEX AI
+-----------------
+Fortivex AI is a leading AI automation company founded in 2019, headquartered in Pune, India. We help businesses across industries automate repetitive processes, improve customer engagement, and unlock data-driven insights using cutting-edge artificial intelligence.
+
+Our mission: "Empower every business with intelligent automation — regardless of size."
+
+We serve clients across e-commerce, healthcare, retail, finance, logistics, and manufacturing sectors.
+
+
+OUR SERVICES
+------------
+
+1. AI Chatbot & Conversational AI
+   - Custom AI chatbots for websites, WhatsApp, and mobile apps
+   - 24/7 customer support automation
+   - Multilingual support (12+ languages)
+   - Integration with CRM, ERP, and ticketing systems
+   - Pricing: Starting at ₹25,000/month for basic; ₹60,000/month for enterprise
+
+2. Intelligent Process Automation (IPA)
+   - End-to-end workflow automation for HR, finance, and operations
+   - Document processing, data extraction, and report generation
+   - Integration with SAP, Salesforce, Zoho, and custom systems
+   - Pricing: Custom quote based on number of workflows; typically ₹40,000–₹1,50,000 setup + ₹15,000/month support
+
+3. Predictive Analytics & Business Intelligence
+   - Sales forecasting, demand planning, and churn prediction
+   - Real-time dashboards built on Power BI or custom web apps
+   - Customer segmentation and lifetime value modelling
+   - Pricing: Starting at ₹35,000/month
+
+4. AI-Powered Sales Assistant (SalesPilot)
+   - Automated lead qualification and scoring
+   - Voice and chat-based sales conversations
+   - CRM auto-population and appointment scheduling
+   - Pricing: ₹20,000/month per agent seat; volume discounts available
+
+5. Computer Vision Solutions
+   - Defect detection and quality control for manufacturing
+   - Retail shelf monitoring and inventory tracking
+   - Security and access control using facial recognition
+   - Pricing: ₹75,000–₹2,00,000 setup depending on camera count and complexity
+
+6. Custom AI Development
+   - Bespoke machine learning models tailored to your domain
+   - LLM fine-tuning for industry-specific use cases
+   - API development and cloud deployment
+   - Pricing: Project-based, typically ₹1,00,000–₹10,000,000+
+
+
+FREQUENTLY ASKED QUESTIONS
+---------------------------
+
+Q: How long does implementation take?
+A: Simple chatbot deployments take 2–3 weeks. Complex custom AI projects take 6–12 weeks depending on data availability and integration requirements.
+
+Q: Do you provide post-deployment support?
+A: Yes. All our solutions include a 30-day post-deployment warranty. We offer ongoing support packages starting at ₹8,000/month.
+
+Q: Can your solutions integrate with existing software?
+A: Absolutely. We have pre-built connectors for Salesforce, HubSpot, Zoho CRM, SAP, Tally, and most REST-API-compatible systems. Custom integrations are also available.
+
+Q: What data do you need to get started?
+A: For chatbots — your existing FAQ documents and service information. For predictive analytics — 12–24 months of historical transaction data is ideal. For computer vision — labelled image datasets or access to live camera feeds.
+
+Q: Is our data secure?
+A: Yes. We follow ISO 27001 practices, encrypt data at rest and in transit, and never share client data with third parties. We can sign NDAs and data-processing agreements.
+
+Q: Do you offer demos?
+A: Yes! We offer free 30-minute product demonstrations. Contact our sales team or book through our website.
+
+Q: Can small businesses afford AI automation?
+A: Our entry-level chatbot plans start at ₹25,000/month, making AI automation accessible to SMEs. We also offer project-based pricing for one-time implementations.
+
+Q: What ROI can we expect?
+A: Clients typically report 30–60% reduction in customer support tickets within 3 months, and 20–40% improvement in lead conversion rates when using our sales assistant.
+
+
+CONTACT INFORMATION
+--------------------
+Sales Team: sales@fortivex.ai
+Support: support@fortivex.ai
+Phone: +91-20-4890-1234
+Office: Fortivex Tower, Baner Road, Pune 411045, Maharashtra, India
+Website: www.fortivex.ai
+LinkedIn: linkedin.com/company/fortivex-ai
+Demo Booking: www.fortivex.ai/demo
+
+
+CURRENT PROMOTIONS (Valid until 31 March 2027)
+------------------------------------------------
+- Free chatbot setup (worth ₹15,000) for annual subscriptions
+- 20% discount on the first 3 months for startups registered after 2022
+- Free business process audit (2-hour consultation) for enterprises with 500+ employees
+
+
+CASE STUDIES (Brief)
+---------------------
+- FastCart E-commerce (Mumbai): Deployed AI chatbot — 45% reduction in support queries, ₹8 lakh saved annually.
+- MediCare Hospital Group (Bengaluru): Implemented appointment automation — patient wait-time down 35%.
+- RapidLogistics (Delhi): Predictive route optimisation — 22% reduction in delivery costs.

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SalesPilot AI — Fortivex AI Sales Agent</title>
+  <meta name="description" content="SalesPilot AI by Fortivex AI is a browser-based AI sales assistant that qualifies leads, books appointments, and surfaces insights in a CRM dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="logo-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="14" fill="url(#logoGrad)"/>
+          <path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="brand-name">SalesPilot <span class="brand-ai">AI</span></span>
+    </div>
+
+    <nav class="tab-nav" role="tablist" aria-label="Main navigation">
+      <button id="tab-chat" class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-chat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+      <button id="tab-crm" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-crm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        CRM Dashboard
+      </button>
+    </nav>
+
+    <div class="header-controls">
+      <label for="lang-select" class="sr-only">Language</label>
+      <select id="lang-select" class="lang-select" aria-label="Conversation language">
+        <option value="English">🌐 English</option>
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Marathi">मराठी</option>
+        <option value="Tamil">தமிழ்</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+  <main class="app-main">
+
+    <!-- ─────────────── CHAT PANEL ─────────────── -->
+    <section id="panel-chat" class="panel panel-chat" role="tabpanel" aria-labelledby="tab-chat">
+
+      <div class="chat-layout">
+
+        <!-- Sidebar info -->
+        <aside class="chat-sidebar">
+          <div class="sidebar-card glass">
+            <h2 class="sidebar-title">Session</h2>
+            <div class="session-id-wrap">
+              <span class="label">ID</span>
+              <code id="session-id-display" class="session-id">—</code>
+            </div>
+            <div class="session-turns">
+              <span class="label">Turns</span>
+              <span id="turn-counter" class="turn-count">0</span>
+            </div>
+          </div>
+
+          <div class="sidebar-card glass">
+            <h2 class="sidebar-title">Lead Status</h2>
+            <div class="lead-badge-wrap">
+              <span id="lead-category-badge" class="lead-badge" data-category="">—</span>
+            </div>
+            <div class="sentiment-row">
+              <span class="label">Sentiment</span>
+              <span id="sentiment-display" class="sentiment-value">—</span>
+            </div>
+          </div>
+
+          <div class="sidebar-card glass action-card">
+            <button id="btn-new-session" class="action-btn btn-secondary" title="Start a new conversation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Conversation
+            </button>
+            <button id="btn-save-lead" class="action-btn btn-primary" title="Save lead to CRM">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Lead to CRM
+            </button>
+            <button id="btn-summarise" class="action-btn btn-outline" title="Generate conversation summary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              Generate Summary
+            </button>
+          </div>
+
+          <!-- Summary box -->
+          <div id="summary-card" class="sidebar-card glass summary-card hidden">
+            <h2 class="sidebar-title">Conversation Summary</h2>
+            <div id="summary-text" class="summary-text"></div>
+          </div>
+
+          <!-- Appointment booking -->
+          <div class="sidebar-card glass appt-card">
+            <h2 class="sidebar-title">Book Appointment</h2>
+            <div class="form-group">
+              <label for="appt-name">Name</label>
+              <input type="text" id="appt-name" class="form-input" placeholder="Customer name" />
+            </div>
+            <div class="form-group">
+              <label for="appt-date">Date</label>
+              <input type="date" id="appt-date" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label for="appt-time">Time</label>
+              <input type="time" id="appt-time" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label for="appt-req">Requirement</label>
+              <input type="text" id="appt-req" class="form-input" placeholder="e.g. AI Chatbot demo" />
+            </div>
+            <button id="btn-book-appt" class="action-btn btn-primary" style="margin-top:4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Book Appointment
+            </button>
+            <p id="appt-status" class="appt-status"></p>
+          </div>
+        </aside>
+
+        <!-- Chat main -->
+        <div class="chat-main">
+          <div id="chat-messages" class="chat-messages" aria-live="polite" aria-label="Conversation">
+            <!-- Welcome message injected by JS -->
+          </div>
+
+          <div class="chat-input-area">
+            <div class="voice-status-bar" id="voice-status-bar" aria-live="polite"></div>
+            <div class="input-row">
+              <button id="btn-mic" class="mic-btn" title="Click to speak" aria-label="Start voice input">
+                <svg id="mic-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="2" width="6" height="12" rx="3"/>
+                  <path d="M19 10c0 4.4-3.1 8-7 8.9M5 10c0 4.4 3.1 8 7 8.9M12 19v3M8 22h8"/>
+                </svg>
+              </button>
+              <input
+                type="text"
+                id="chat-input"
+                class="chat-input"
+                placeholder="Type a message or click the mic…"
+                autocomplete="off"
+                aria-label="Message input"
+              />
+              <button id="btn-send" class="send-btn" aria-label="Send message">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── CRM DASHBOARD ─────────────── -->
+    <section id="panel-crm" class="panel panel-crm hidden" role="tabpanel" aria-labelledby="tab-crm">
+      <div class="crm-header">
+        <h1 class="crm-title">CRM Dashboard</h1>
+        <button id="btn-refresh-crm" class="action-btn btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-6.6L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-row">
+        <div class="kpi-card glass">
+          <div class="kpi-icon kpi-leads">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <div id="kpi-total-leads" class="kpi-value">—</div>
+            <div class="kpi-label">Total Leads</div>
+          </div>
+        </div>
+        <div class="kpi-card glass">
+          <div class="kpi-icon kpi-hot">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c-3.5 5-5 8.5-5 12a9 9 0 0 0 10 8.9A7 7 0 0 0 12 2z"/></svg>
+          </div>
+          <div>
+            <div id="kpi-hot-leads" class="kpi-value">—</div>
+            <div class="kpi-label">Hot Leads</div>
+          </div>
+        </div>
+        <div class="kpi-card glass">
+          <div class="kpi-icon kpi-appt">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div>
+            <div id="kpi-total-appts" class="kpi-value">—</div>
+            <div class="kpi-label">Appointments</div>
+          </div>
+        </div>
+        <div class="kpi-card glass">
+          <div class="kpi-icon kpi-positive">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div>
+            <div id="kpi-positive-pct" class="kpi-value">—</div>
+            <div class="kpi-label">Positive Sentiment</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="chart-card glass">
+          <h3 class="chart-title">Lead Categories</h3>
+          <div class="chart-wrap">
+            <canvas id="chart-lead-category" aria-label="Lead categories donut chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card glass">
+          <h3 class="chart-title">Customer Sentiment</h3>
+          <div class="chart-wrap">
+            <canvas id="chart-sentiment" aria-label="Sentiment donut chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leads table -->
+      <div class="table-card glass">
+        <div class="table-header-row">
+          <h3 class="table-title">Leads</h3>
+        </div>
+        <div class="table-scroll">
+          <table class="crm-table" id="leads-table" aria-label="Leads table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Business</th>
+                <th>Requirement</th>
+                <th>Budget</th>
+                <th>Category</th>
+                <th>Sentiment</th>
+                <th>Summary</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody">
+              <tr><td colspan="9" class="empty-row">No leads yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Appointments table -->
+      <div class="table-card glass" style="margin-top:1.5rem;">
+        <div class="table-header-row">
+          <h3 class="table-title">Appointment Requests</h3>
+        </div>
+        <div class="table-scroll">
+          <table class="crm-table" id="appts-table" aria-label="Appointments table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Requirement</th>
+                <th>Status</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="appts-tbody">
+              <tr><td colspan="7" class="empty-row">No appointments yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════ TOAST ═══════════════════════════ -->
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
