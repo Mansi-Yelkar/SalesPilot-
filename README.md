@@ -142,6 +142,4 @@ See `PROJECT_REPORT.md` for the full scalability discussion.
 
 ---
 
-## 📄 License
 
-MIT
