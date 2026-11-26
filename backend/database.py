@@ -117,7 +117,13 @@ def save_lead(
 def get_all_leads() -> List[Dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT * FROM leads ORDER BY created_at DESC"
+            """SELECT * FROM leads
+               WHERE COALESCE(customer_name, '') != ''
+                  OR COALESCE(business_type, '') != ''
+                  OR COALESCE(requirement, '') != ''
+                  OR COALESCE(budget, '') != ''
+                  OR COALESCE(contact, '') != ''
+               ORDER BY created_at DESC"""
         ).fetchall()
     return [dict(r) for r in rows]
 
@@ -153,24 +159,25 @@ def get_all_appointments() -> List[Dict[str, Any]]:
 
 def get_insights() -> Dict[str, Any]:
     with _connect() as conn:
-        total_leads = conn.execute("SELECT COUNT(*) FROM leads").fetchone()[0]
+        qualified = "COALESCE(customer_name, '') != '' OR COALESCE(business_type, '') != '' OR COALESCE(requirement, '') != '' OR COALESCE(budget, '') != '' OR COALESCE(contact, '') != ''"
+        total_leads = conn.execute(f"SELECT COUNT(*) FROM leads WHERE {qualified}").fetchone()[0]
         hot = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE lead_category='Hot'"
+            f"SELECT COUNT(*) FROM leads WHERE ({qualified}) AND lead_category='Hot'"
         ).fetchone()[0]
         warm = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE lead_category='Warm'"
+            f"SELECT COUNT(*) FROM leads WHERE ({qualified}) AND lead_category='Warm'"
         ).fetchone()[0]
         cold = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE lead_category='Cold'"
+            f"SELECT COUNT(*) FROM leads WHERE ({qualified}) AND lead_category='Cold'"
         ).fetchone()[0]
         positive = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE sentiment='Positive'"
+            f"SELECT COUNT(*) FROM leads WHERE ({qualified}) AND sentiment='Positive'"
         ).fetchone()[0]
         neutral = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE sentiment='Neutral'"
+            f"SELECT COUNT(*) FROM leads WHERE ({qualified}) AND sentiment='Neutral'"
         ).fetchone()[0]
         negative = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE sentiment='Negative'"
+            f"SELECT COUNT(*) FROM leads WHERE ({qualified}) AND sentiment='Negative'"
         ).fetchone()[0]
         total_appointments = conn.execute(
             "SELECT COUNT(*) FROM appointments"

@@ -18,15 +18,13 @@ load_dotenv()
 from backend import database, agent
 from backend.lead_qualification import extract_lead_data
 from backend.booking import book_appointment
-from backend.rag import rag_engine
 
 # ---------------------------------------------------------------------------
 # Startup
 # ---------------------------------------------------------------------------
 database.init_db()
-rag_engine.build()
 
-app = FastAPI(title="SalesPilot AI", version="1.0.0")
+app = FastAPI(title="SalesPilot AI", version="1.0.0", lifespan=None)
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,14 +94,15 @@ async def chat_endpoint(req: ChatRequest):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
-    reply = agent.chat(session_id, req.message, req.language or "English")
+    from starlette.concurrency import run_in_threadpool
+    reply = await run_in_threadpool(agent.chat, session_id, req.message, req.language or "English")
 
-    # Increment turn counter
+    # Increment turns
     _turn_counts[session_id] = _turn_counts.get(session_id, 0) + 1
     turn_count = _turn_counts[session_id]
 
-    # Auto-extract and save lead every 5 turns and at end
-    if turn_count >= 3 and turn_count % 5 == 3:
+    # Auto-extract and save lead every 3 turns
+    if turn_count >= 2 and turn_count % 3 == 2:
         _auto_save_lead(session_id)
 
     return ChatResponse(session_id=session_id, reply=reply, turn_count=turn_count)
@@ -113,8 +112,12 @@ def _auto_save_lead(session_id: str) -> None:
     """Extract lead data from conversation and persist to DB."""
     try:
         convo = agent.get_conversation_text(session_id)
+        if not convo.strip() or not agent.has_customer_message(session_id):
+            return
         summary = agent.generate_summary(session_id)
         lead_data = extract_lead_data(convo)
+        if not any(lead_data.get(field) for field in ("customer_name", "business_type", "requirement", "budget", "contact")):
+            return
         database.save_lead(
             session_id=session_id,
             customer_name=lead_data.get("customer_name"),
@@ -141,8 +144,12 @@ async def save_lead_endpoint(req: LeadIn):
     convo = agent.get_conversation_text(req.session_id)
     if not convo.strip():
         raise HTTPException(status_code=400, detail="No conversation found for this session.")
-    summary = agent.generate_summary(req.session_id)
-    lead_data = extract_lead_data(convo)
+    from starlette.concurrency import run_in_threadpool
+    summary, lead_data = await run_in_threadpool(
+        lambda: (agent.generate_summary(req.session_id), extract_lead_data(convo))
+    )
+    if not any(lead_data.get(field) for field in ("customer_name", "business_type", "requirement", "budget", "contact")):
+        raise HTTPException(status_code=422, detail="No customer details were found. Share a name, business type, requirement, budget, or contact before saving the lead.")
     lead_id = database.save_lead(
         session_id=req.session_id,
         customer_name=lead_data.get("customer_name"),
@@ -181,7 +188,8 @@ async def get_summary(req: SummaryRequest):
     convo = agent.get_conversation_text(req.session_id)
     if not convo.strip():
         raise HTTPException(status_code=400, detail="No conversation found.")
-    summary = agent.generate_summary(req.session_id)
+    from starlette.concurrency import run_in_threadpool
+    summary = await run_in_threadpool(agent.generate_summary, req.session_id)
     return {"summary": summary}
 
 

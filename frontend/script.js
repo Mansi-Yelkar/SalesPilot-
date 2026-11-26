@@ -17,6 +17,9 @@ let turnCount     = 0;
 let isListening   = false;
 let isSpeaking    = false;
 let recognition   = null;
+let finalTranscript = '';
+let voiceError = '';
+let isSending = false;
 let leadChartInst = null;
 let sentChartInst = null;
 
@@ -91,9 +94,12 @@ function generateUUID() {
 // CHAT
 // ═══════════════════════════════════════════════════════════
 async function sendMessage(text) {
+  if (isSending) return;
   text = text.trim();
   if (!text) return;
 
+  isSending = true;
+  btnSend.disabled = true;
   chatInput.value = '';
   appendMessage('user', text);
   const typingId = appendTypingIndicator();
@@ -111,7 +117,12 @@ async function sendMessage(text) {
     const data = await res.json();
     removeTypingIndicator(typingId);
 
-    if (!res.ok) throw new Error(data.detail || 'Chat error');
+    if (!res.ok) {
+      const message = data.detail || 'Chat request failed. Please try again.';
+      appendMessage('ai', message);
+      showToast(message, 'error');
+      return;
+    }
 
     turnCount = data.turn_count;
     turnCounter.textContent = turnCount;
@@ -124,7 +135,12 @@ async function sendMessage(text) {
     }
   } catch (err) {
     removeTypingIndicator(typingId);
+    appendMessage('ai', `I couldn't send that message: ${err.message}. Please try again.`);
     showToast('Error: ' + err.message, 'error');
+  } finally {
+    isSending = false;
+    btnSend.disabled = false;
+    if (voiceStatusBar.textContent === 'Sending recognized speech…') voiceStatusBar.textContent = '';
   }
 }
 
@@ -189,6 +205,7 @@ function setupVoiceInput() {
   if (!SpeechRecognition) {
     btnMic.title = 'Speech recognition not supported in this browser. Use text input.';
     btnMic.disabled = true;
+    voiceStatusBar.textContent = 'Voice recognition is not available in this browser. Open this page in Chrome or Edge, or type your message.';
     return;
   }
   recognition = new SpeechRecognition();
@@ -198,6 +215,8 @@ function setupVoiceInput() {
 
   recognition.onstart = () => {
     isListening = true;
+    finalTranscript = '';
+    voiceError = '';
     btnMic.classList.add('listening');
     voiceStatusBar.textContent = '🎙 Listening…';
   };
@@ -209,29 +228,39 @@ function setupVoiceInput() {
       if (result.isFinal) final += result[0].transcript;
       else interim += result[0].transcript;
     }
-    chatInput.value = final || interim;
-    voiceStatusBar.textContent = interim ? `🎙 ${interim}` : (final ? `✅ "${final}"` : '');
+    const text = final || interim;
+    if (text) {
+      finalTranscript = text.trim();
+      chatInput.value = finalTranscript;
+      voiceStatusBar.textContent = interim ? `🎙 ${interim}` : `✅ "${final}"`;
+    }
   };
 
   recognition.onend = () => {
     isListening = false;
     btnMic.classList.remove('listening');
-    const finalText = chatInput.value.trim();
-    if (finalText) {
-      voiceStatusBar.textContent = '';
+    const finalText = (finalTranscript || chatInput.value || '').trim();
+    if (voiceError) {
+      setTimeout(() => { voiceStatusBar.textContent = ''; }, 5000);
+    } else if (finalText) {
+      voiceStatusBar.textContent = 'Sending recognized speech…';
+      setTimeout(() => { voiceStatusBar.textContent = ''; }, 2000);
       sendMessage(finalText);
     } else {
-      voiceStatusBar.textContent = '';
+      voiceStatusBar.textContent = 'No speech was recognized. Try again or type your message.';
+      setTimeout(() => { voiceStatusBar.textContent = ''; }, 4000);
     }
   };
 
   recognition.onerror = (e) => {
     isListening = false;
+    voiceError = e.error || 'unknown';
     btnMic.classList.remove('listening');
-    voiceStatusBar.textContent = '';
-    if (e.error !== 'no-speech') {
-      showToast('Voice error: ' + e.error, 'error');
-    }
+    voiceStatusBar.textContent = e.error === 'no-speech'
+      ? 'No speech detected. Try again.'
+      : `Voice input failed (${e.error}). Check microphone permission or type your message.`;
+    if (e.error !== 'no-speech') showToast('Voice input failed: ' + e.error, 'error');
+    setTimeout(() => { voiceStatusBar.textContent = ''; }, 5000);
   };
 }
 
@@ -248,7 +277,11 @@ function toggleListening() {
       : langSelect.value === 'Marathi' ? 'mr-IN'
       : langSelect.value === 'Tamil'   ? 'ta-IN'
       : 'en-US';
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (err) {
+      showToast('Could not start voice input. Please try again or type your message.', 'error');
+    }
   }
 }
 
@@ -428,53 +461,77 @@ async function loadInsights() {
 }
 
 function renderLeadChart(cats) {
-  const ctx = document.getElementById('chart-lead-category').getContext('2d');
+  const canvas = document.getElementById('chart-lead-category');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
   if (leadChartInst) leadChartInst.destroy();
+
+  const hot = Number(cats?.Hot || 0);
+  const warm = Number(cats?.Warm || 0);
+  const cold = Number(cats?.Cold || 0);
+  const hasData = (hot + warm + cold) > 0;
+
   leadChartInst = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Hot', 'Warm', 'Cold'],
+      labels: hasData ? ['Hot', 'Warm', 'Cold'] : ['No Leads Yet'],
       datasets: [{
-        data: [cats?.Hot || 0, cats?.Warm || 0, cats?.Cold || 0],
-        backgroundColor: ['hsla(10,90%,60%,0.85)', 'hsla(38,92%,55%,0.85)', 'hsla(205,80%,60%,0.85)'],
-        borderColor:     ['hsl(10,90%,60%)',       'hsl(38,92%,55%)',       'hsl(205,80%,60%)'],
+        data: hasData ? [hot, warm, cold] : [1],
+        backgroundColor: hasData
+          ? ['hsla(10,90%,60%,0.85)', 'hsla(38,92%,55%,0.85)', 'hsla(205,80%,60%,0.85)']
+          : ['hsla(230,15%,28%,0.5)'],
+        borderColor: hasData
+          ? ['hsl(10,90%,60%)', 'hsl(38,92%,55%)', 'hsl(205,80%,60%)']
+          : ['hsl(230,15%,35%)'],
         borderWidth: 2,
-        hoverOffset: 6,
+        hoverOffset: hasData ? 6 : 0,
       }],
     },
-    options: chartOptions('Lead Category'),
+    options: chartOptions('Lead Category', hasData),
   });
 }
 
 function renderSentimentChart(sents) {
-  const ctx = document.getElementById('chart-sentiment').getContext('2d');
+  const canvas = document.getElementById('chart-sentiment');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
   if (sentChartInst) sentChartInst.destroy();
+
+  const pos = Number(sents?.Positive || 0);
+  const neu = Number(sents?.Neutral || 0);
+  const neg = Number(sents?.Negative || 0);
+  const hasData = (pos + neu + neg) > 0;
+
   sentChartInst = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Positive', 'Neutral', 'Negative'],
+      labels: hasData ? ['Positive', 'Neutral', 'Negative'] : ['No Sentiment Yet'],
       datasets: [{
-        data: [sents?.Positive || 0, sents?.Neutral || 0, sents?.Negative || 0],
-        backgroundColor: ['hsla(142,60%,50%,0.85)', 'hsla(220,15%,60%,0.85)', 'hsla(355,75%,60%,0.85)'],
-        borderColor:     ['hsl(142,60%,50%)',        'hsl(220,15%,60%)',        'hsl(355,75%,60%)'],
+        data: hasData ? [pos, neu, neg] : [1],
+        backgroundColor: hasData
+          ? ['hsla(142,60%,50%,0.85)', 'hsla(220,15%,60%,0.85)', 'hsla(355,75%,60%,0.85)']
+          : ['hsla(230,15%,28%,0.5)'],
+        borderColor: hasData
+          ? ['hsl(142,60%,50%)', 'hsl(220,15%,60%)', 'hsl(355,75%,60%)']
+          : ['hsl(230,15%,35%)'],
         borderWidth: 2,
-        hoverOffset: 6,
+        hoverOffset: hasData ? 6 : 0,
       }],
     },
-    options: chartOptions('Sentiment'),
+    options: chartOptions('Sentiment', hasData),
   });
 }
 
-function chartOptions(title) {
+function chartOptions(title, hasData = true) {
   return {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '68%',
+    cutout: '70%',
     plugins: {
       legend: {
         position: 'bottom',
         labels: {
-          color: 'hsl(220,15%,55%)',
+          color: 'hsl(220,15%,65%)',
           font:  { family: 'Inter', size: 12 },
           padding: 14,
           boxWidth: 12,
@@ -484,6 +541,7 @@ function chartOptions(title) {
         },
       },
       tooltip: {
+        enabled: hasData,
         backgroundColor: 'hsl(230,16%,16%)',
         titleColor:      'hsl(220,20%,92%)',
         bodyColor:       'hsl(220,15%,70%)',

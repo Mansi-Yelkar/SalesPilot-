@@ -5,10 +5,7 @@ Loads company_knowledge.txt, chunks it, and builds a semantic search index.
 
 import os
 import re
-import textwrap
 from typing import List
-
-import numpy as np
 
 KNOWLEDGE_PATH = os.path.join(
     os.path.dirname(__file__), "..", "data", "company_knowledge.txt"
@@ -43,6 +40,7 @@ class RAGEngine:
     def build(self) -> None:
         """Load document, create embeddings, and build FAISS index."""
         try:
+            import numpy as np
             from sentence_transformers import SentenceTransformer
             import faiss  # type: ignore
 
